@@ -1,0 +1,691 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass llncs
+\begin_preamble
+\usepackage{tikz} 
+\usepackage{pgfplots}
+\usepackage{indentfirst}
+\thispagestyle{empty}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\series bold
+Traffic monitoring system
+\end_layout
+
+\begin_layout Author
+Robert-Adrian Găină (2E4)
+\end_layout
+
+\begin_layout Institute
+Faculty of Computer Science 
+\begin_inset Quotes eld
+\end_inset
+
+Alexandru Ioan Cuza
+\begin_inset Quotes erd
+\end_inset
+
+ Iași
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+Traffic decongestion and fluidization is a modern problem that can be attenuated
+ with the help of navigation software.
+ This paper serves as the technical report of the application named Traffic
+ monitoring, a project recommendation from Continental for the Computer
+ Network course at Faculty of Computer Science.
+ The scope of this application is being able to monitorize the traffic upon
+ a certain area by providing informations to the drivers.
+ In addition to that, the drivers can report temporary incidents on the
+ road for the others or modify informations in the system.
+\end_layout
+
+\begin_layout Standard
+This report contains detailed informations of the used technologies, application
+ architecture, implementation details as well as improvements that could
+ be added in the future.
+\end_layout
+
+\begin_layout Section
+Application architecture
+\end_layout
+
+\begin_layout Standard
+The application will be based upon the 
+\series bold
+Client-Server
+\series default
+ model with a 
+\series bold
+concurrent server
+\series default
+.
+ In this way, we are avoiding the starvation problem that appears when using
+ an iterative server with an increased number of clients.
+ 
+\end_layout
+
+\begin_layout Standard
+The project implementation is based on the Transmission Control Protocol
+ (
+\series bold
+TCP
+\series default
+).
+ This connection oriented method was chosen in order to assure a safe transport
+ of data between the clients and the server.
+ For this type of application we must be sure that we are not losing any
+ data packets during the transfer nor receiving them in a different order.
+ In addition to this, it is more reliable to keep a constant connection
+ between the clients and the server in order to send traffic updates to
+ the participants.
+ Therefore, the TCP protocol will be used for implementing the application.
+ 
+\end_layout
+
+\begin_layout Standard
+The concurrency pattern used will be 
+\series bold
+threading.
+ 
+\series default
+For each client the server will create a new thread that will execute the
+ commands required.
+ Threading was chosen over forking because of the common memory zone present
+ in the technique, allowing the server to send information faster to the
+ clients.
+ 
+\end_layout
+
+\begin_layout Standard
+The information transmitted between the client and the server will be done
+ using 
+\series bold
+sockets
+\series default
+.
+ Each client will create a parent and a child process after the connection
+ is established.
+ From this point the client-server communication is assured by the parent
+ process while the server-client is managed by the chil.
+ (Write to server in parent read from child).
+ 
+\end_layout
+
+\begin_layout Standard
+All the traffic details will be stored into a 
+\series bold
+SQLite
+\series default
+ database.
+ This database can be modified over time by the clients and each update
+ of it will be sent to the connected clients.
+\end_layout
+
+\begin_layout Section
+Implementation details
+\end_layout
+
+\begin_layout Subsection
+Traffic mapping
+\end_layout
+
+\begin_layout Standard
+This app will monitor the traffic of one city split into neighbourhoods.
+ Each neighbourhoods contains a set of streets with each street containing
+ a set of informations (F.I.
+ speed limit, sport events, gas stops with gas prices, weather info, accidents
+ etc...).
+ Any client can report new incidents on a certain street or neighbourhood
+ that will be registered into the database.
+ Any incident can be removed from the database if a number of clients report
+ the incident as a false alert.
+ Every time a driver enters a new street he will get informations from the
+ server about the area as well.
+ Additionally, after a fixed period of time on a street the driver will
+ get the updated information.
+\end_layout
+
+\begin_layout Subsection
+Estabilishing a connection
+\end_layout
+
+\begin_layout Standard
+A connection between a client and a server can be established only by the
+ client.
+ When we want to create a connection the client will initiate the connection
+ request.
+ When receiving the connection request the server accepts it and creates
+ a new thread that will receive further commands from the client or send
+ updates to the client.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename pasted2.png
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Client connecting to the server
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Client-Server communication
+\end_layout
+
+\begin_layout Standard
+In the application we define two types of communication operation: 
+\series bold
+Interogations
+\series default
+ and 
+\series bold
+updates
+\series default
+.
+ An interogation is a request that doesn't alter the database while an update
+ modifies it.
+\end_layout
+
+\begin_layout Standard
+1.
+ The types of interogations are:
+\end_layout
+
+\begin_layout Itemize
+Data request from a client that changes the neighbourhood/street
+\end_layout
+
+\begin_layout Itemize
+Data request from a client about a specific zone/information
+\end_layout
+
+\begin_layout Itemize
+Regular update of informations ( every ~1 minute)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename pasted4.png
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+An interogation initiated by the client
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For the first two type of operations the client sends a request to the server
+ asking for informations.
+ Whenever the localization detects that the driver changes to a new street/neigh
+bourhood it will send an automated request to the server asking for informations
+ about the street/neighbourhood.
+ Additionally, the client can manually send a request for a certain zone.
+ According to the command received, the server will search in the database
+ and return the informations required back to the client.
+ 
+\end_layout
+
+\begin_layout Standard
+All the clients will ask for automatical updates of informations at every
+ 1 minute.
+ 
+\end_layout
+
+\begin_layout Standard
+2.
+ The types of updates are:
+\end_layout
+
+\begin_layout Itemize
+A client signals an information that is not in the database already to the
+ server
+\end_layout
+
+\begin_layout Itemize
+A set of clients signal the absence of an event that is present in the database
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename pasted5.png
+	scale 70
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+An update triggered by a client
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When a client signals an event that is not registered by the server the
+ thread responsible with the communication with that client will modify
+ the database and signal the other clients by using the list of socket desc
+ riptors about the change.
+ 
+\end_layout
+
+\begin_layout Standard
+Since some of the events are not permanent or fixed (F.I.
+ accidents) each temporary event can be deleted.
+ When an user comes across a temporary event he will be notified and allowed
+ to signal the absence of the event.
+ When a number of consecutive clients report the incident as being absent
+ it will be removed from the database.
+ For some interogations the user will also be able to change the data (F.I
+ gas prices) when near the place.
+ 
+\end_layout
+
+\begin_layout Subsection
+Use cases examples
+\end_layout
+
+\begin_layout Standard
+In this section we will present how the application should work in the final
+ version.
+\end_layout
+
+\begin_layout Standard
+In order to connect each client should already know the adress and the port
+ where the server allows connection.
+ For every client that sends a connection request the server will create
+ a thread that should only respond to that specific client.
+ After the connection is established the thread will wait for commands.
+\end_layout
+
+\begin_layout Standard
+Connection example:
+\end_layout
+
+\begin_layout Standard
+Two clients send a connection request.
+ 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ Server creates two threads
+\end_layout
+
+\begin_layout Standard
+Clients send a request each to the server 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ The thread assigned to each client solves the request
+\end_layout
+
+\begin_layout Standard
+One client randomly disconnects 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ The thread assigned to that client will close
+\end_layout
+
+\begin_layout Standard
+Commands available to the user: 
+\end_layout
+
+\begin_layout Itemize
+Login: - connects the user to its account
+\end_layout
+
+\begin_layout Itemize
+Extra: - allows the user to ask about what type of information he can receive
+ in traffic.
+ There are 3 levels for this settings.
+ 0- only important informations, 1- additional events/places on the street,
+ 2-aditional events/places on the neighbourhood where the street is part
+ of
+\end_layout
+
+\begin_layout Itemize
+Change: -allows the user to send a change of street/neighbourhood (This
+ is mostly used automatically by the geolocalization system)
+\end_layout
+
+\begin_layout Itemize
+Search: -search in the database for events/places based on a pattern.
+\end_layout
+
+\begin_layout Itemize
+Alert: -allows the user to signal the presence/absence of accidents or other
+ temporal events.
+ This will insert the event into the database along with a column that is
+ decremented/incremented based upon the feedback of other drivers.
+ (If the value becomes 0 the event is dropped from the database)
+\end_layout
+
+\begin_layout Standard
+Alert example:
+\end_layout
+
+\begin_layout Standard
+Client signals an accident that is not registered by the application on
+ a street 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ thread responsible for the client adds the accident in the database as
+ a temporal event (that can be removed after 3-5 people marked it as absent
+ event) and to a common memory zone for all the threads to see 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ all the threads will pick up the command and send in to their assigned
+ clients 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ threads will mark that they have notified their clients 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ when all threads notified their clients the accident will be removed from
+ the common memory zone.
+\end_layout
+
+\begin_layout Standard
+Elimination of alert example:
+\end_layout
+
+\begin_layout Standard
+Client asks about informations upon a street where an accident was recently
+ reported 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ The server will send the related informations about the street and ask
+ for the confirmation of the accident
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ if the accident is marked by the client as absent the server will decrement
+ the value detailed before otherwise increment 
+\begin_inset Formula $\longrightarrow$
+\end_inset
+
+ If the value is 0 the accident is dropped from the database.
+\end_layout
+
+\begin_layout Section
+Conclusion
+\end_layout
+
+\begin_layout Standard
+This application can help mitigating the daily traffic inconveniences and
+ also signaling flawed street networks.
+ 
+\end_layout
+
+\begin_layout Standard
+This application could benefit from the following improvements:
+\end_layout
+
+\begin_layout Itemize
+Being able to configure a starting and ending point in order to send alerts
+ only present on the route planned
+\end_layout
+
+\begin_layout Itemize
+The updates/informations could be sent only if they are from the neighbourhood
+ where the driver currently is.
+\end_layout
+
+\begin_layout Itemize
+A graphic interface to ease the experience of the user.
+\end_layout
+
+\begin_layout Itemize
+Implementing street network flows on the map allowing us to see how crowded
+ it is.
+\end_layout
+
+\begin_layout Itemize
+A localization system.
+\end_layout
+
+\begin_layout Itemize
+A gps speedometer system.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-3"
+
+\end_inset
+
+General informations about computer networks
+\begin_inset Newline newline
+\end_inset
+
+https://profs.info.uaic.ro/~computernetworks/cursullaboratorul.php
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-7"
+
+\end_inset
+
+Project description [Monitorizarea traficului (A) [Propunere Continental]]
+\begin_inset Newline newline
+\end_inset
+
+https://profs.info.uaic.ro/~computernetworks/ProiecteNet2020.php
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-9"
+
+\end_inset
+
+TCP vs UDP
+\begin_inset Newline newline
+\end_inset
+
+https://www.guru99.com/tcp-vs-udp-understanding-the-difference.html
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-11"
+
+\end_inset
+
+Thread vs Fork
+\begin_inset Newline newline
+\end_inset
+
+http://www.geekride.com/fork-forking-vs-threading-thread-linux-kernel
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-12"
+
+\end_inset
+
+Waze (Application functionality inspiration)
+\begin_inset Newline newline
+\end_inset
+
+https://www.waze.com/
+\end_layout
+
+\end_body
+\end_document
